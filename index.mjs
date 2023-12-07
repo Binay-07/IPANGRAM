@@ -111,18 +111,6 @@ export const batch_insert_dynamo = async (params) => {
     }
 };
 
-function generate_random_digits(n) {
-    var add = 1,
-        max = 12 - add;
-    if (n > max) {
-        return generate_random_digits(max) + generate_random_digits(n - max);
-    }
-    max = Math.pow(10, n + add);
-    var min = max / 10;
-    var number = Math.floor(Math.random() * (max - min + 1)) + min;
-    return ("" + number).substring(add);
-}
-
 const create_cognito_user = async (email_id, poolId) => {
     console.log(email_id, poolId);
     try {
@@ -156,9 +144,8 @@ const create_cognito_user = async (email_id, poolId) => {
 
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
 
-const userPoolId = "us-west-2_6bxbLm4AR";
-//const region = "us-west-2";
-const userPoolWebClientId = "13dbt7osfq78sa4ub7juga8p4j";
+const userPoolId = "process.env.user_pool_id";
+const userPoolWebClientId = "process.env.user_pool_id";
 
 const login_user = async (event) => {
   try {
@@ -254,20 +241,6 @@ const authenticate_user = async (event) => {
     return false;
   }
 };
-
-// Example usage:
-// Replace 'yourUsername', 'yourPassword', and 'yourNewPassword' with the actual user credentials
-// authenticateUser({
-//   email: 'binoykunalswain@gmail.com',
-//   password: 'Admin@123',
-//   newPassword: '<new-password>',
-// })
-//   .then((result) => console.log(result))
-//   .catch((error) => console.error(error));
-
-// export { authenticateUser };
-
-
 
 const signup_user = async (event) => {
     if (check_empty_fields(event)) {
