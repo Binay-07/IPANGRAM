@@ -11,7 +11,9 @@ const user_pool_id = process.env.user_pool_id;
 import { CognitoIdentityProviderClient, AdminCreateUserCommand } from "@aws-sdk/client-cognito-identity-provider";
 const region = "us-west-2";
 const client = new CognitoIdentityProviderClient({ region });
-
+import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
+const userPoolId = process.env.user_pool_id;
+const userPoolWebClientId = process.env.cognito_appclient_id;
 
 const check_empty_fields = (event) => {
     let checkEmptyFields = true;
@@ -101,16 +103,6 @@ export const dynamic_sort = (property) => {
     };
 };
 
-export const batch_insert_dynamo = async (params) => {
-    try {
-        const data = await ddbDocClient.send(new ddb.BatchWriteCommand(params));
-        return data;
-    }
-    catch (err) {
-        console.error(err);
-    }
-};
-
 const create_cognito_user = async (email_id, poolId) => {
     console.log(email_id, poolId);
     try {
@@ -142,48 +134,42 @@ const create_cognito_user = async (email_id, poolId) => {
 
 /*---- USER MANAGEMENT ----*/
 
-import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
-
-const userPoolId = "process.env.user_pool_id";
-const userPoolWebClientId = "process.env.user_pool_id";
-
-const login_user = async (event) => {
-  try {
-    console.log('Email:', event.email);
-    console.log('Password:', event.password);
-
-    const authenticationData = {
-      Username: event.email,
-      Password: event.password,
-    };
-
-    const authenticationDetails = new AuthenticationDetails(authenticationData);
-
-    const userData = {
-      Username: event.email,
-      Pool: new CognitoUserPool({
-        UserPoolId: userPoolId,
-        ClientId: userPoolWebClientId,
-      }),
-    };
-
-    const cognitoUser = new CognitoUser(userData);
-
-    const session = await new Promise((resolve, reject) => {
-      cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (session) => resolve(session),
-        onFailure: (err) => reject(err),
-      });
-    });
-
-    console.log('Authentication successful:', session.getIdToken().getJwtToken());
-    return true;
-  } catch (error) {
-    console.error('Authentication failed:', error);
-    return false;
-  }
+const signup_user = async (event) => {
+    if (check_empty_fields(event)) {
+        let checkUserExistOrNot = {
+            TableName: "ipangram_users",
+            IndexName: "user_email_id-index",
+            KeyConditionExpression: "user_email_id = :user_email_id",
+            ExpressionAttributeValues: {
+                ":user_email_id": event.user_email_id.toLowerCase()
+            },
+        };
+        let userDetails = await query_dynamo(checkUserExistOrNot);
+        if (userDetails.Count == 0) {
+            await create_cognito_user(event.user_email_id.toLowerCase(), user_pool_id, false);
+            let insertUserDetails = {
+                TableName: "ipangram_users",
+                Item: {
+                    user_id: uuidv4(),
+                    user_name: event.user_name,
+                    user_email_id: event.user_email_id.toLowerCase(),
+                    address: event.address,
+                    user_status: "ACTIVE",
+                    user_type: event.user_type.toLowerCase(),
+                    user_created_on: new Date().getTime(),
+                },
+            };
+            await insert_dynamo(insertUserDetails);
+            return { status: "SUCCESS", status_message: "User Signup Successful" };
+        }
+        else {
+            return { status: "SUCCESS", status_message: "User with Email Id Already Present...Please Log In" };
+        }
+    }
+    else {
+        throw new Error("Empty Field Occured Cannot Signup!!!");
+    }
 };
-
 
 const authenticate_user = async (event) => {
   try {
@@ -197,6 +183,8 @@ const authenticate_user = async (event) => {
     };
 
     const authenticationDetails = new AuthenticationDetails(authenticationData);
+    console.log(userPoolId);
+    console.log(userPoolWebClientId);
 
     const userData = {
       Username: email,
@@ -242,41 +230,41 @@ const authenticate_user = async (event) => {
   }
 };
 
-const signup_user = async (event) => {
-    if (check_empty_fields(event)) {
-        let checkUserExistOrNot = {
-            TableName: "ipangram_users",
-            IndexName: "user_email_id-index",
-            KeyConditionExpression: "user_email_id = :user_email_id",
-            ExpressionAttributeValues: {
-                ":user_email_id": event.user_email_id.toLowerCase()
-            },
-        };
-        let userDetails = await query_dynamo(checkUserExistOrNot);
-        if (userDetails.Count == 0) {
-            await create_cognito_user(event.user_email_id.toLowerCase(), user_pool_id, false);
-            let insertUserDetails = {
-                TableName: "ipangram_users",
-                Item: {
-                    user_id: uuidv4(),
-                    user_name: event.user_name,
-                    user_email_id: event.user_email_id.toLowerCase(),
-                    address: event.address,
-                    user_status: "ACTIVE",
-                    user_type: event.user_type.toLowerCase(),
-                    user_created_on: new Date().getTime(),
-                },
-            };
-            await insert_dynamo(insertUserDetails);
-            return { status: "SUCCESS", status_message: "User Signup Successful" };
-        }
-        else {
-            return { status: "SUCCESS", status_message: "User with Email Id Already Present...Please Log In" };
-        }
-    }
-    else {
-        throw new Error("Empty Field Occured Cannot Signup!!!");
-    }
+const login_user = async (event) => {
+  try {
+    //console.log('Email:', event.email);
+    //console.log('Password:', event.password);
+
+    const authenticationData = {
+      Username: event.email,
+      Password: event.password,
+    };
+
+    const authenticationDetails = new AuthenticationDetails(authenticationData);
+
+    const userData = {
+      Username: event.email,
+      Pool: new CognitoUserPool({
+        UserPoolId: userPoolId,
+        ClientId: userPoolWebClientId,
+      }),
+    };
+
+    const cognitoUser = new CognitoUser(userData);
+
+    const session = await new Promise((resolve, reject) => {
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: (session) => resolve(session),
+        onFailure: (err) => reject(err),
+      });
+    });
+
+    console.log('Authentication successful:', session.getIdToken().getJwtToken());
+    return true;
+  } catch (error) {
+    console.error('Authentication failed:', error);
+    return false;
+  }
 };
 
 const get_current_user_details = async (event) => {
@@ -303,7 +291,6 @@ const get_current_user_details = async (event) => {
         throw new Error("Empty Field Occured!!!");
     }
 };
-
 
 const list_users_through_address = async (event) => {
     let listUserParams = {
