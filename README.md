@@ -23,6 +23,8 @@ NOW you added a new passowrd.
 >>WHILE TESTING OTHER APIS please provide managers email ID in the field of manager_email_id.......................
 >>user_email_id means email id of general employee
 >>
+>>https://mentoos.s3.ap-southeast-1.amazonaws.com/IPANGRAM+POSTMAN+COLLECTIONS.docx
+>>
 >>Please reach out to me if any doubts
 Regards
 BINAY KUMAR SWAIN 
