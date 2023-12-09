@@ -21,4 +21,11 @@ NOW you added a new passowrd.
 >>LOGIN API- Give your email id and new password to check log in is working properly(true means LOGIN success false means LOGIN failed).
 >>
 >>WHILE TESTING OTHER APIS please provide managers email ID in the field of manager_email_id.......................
->>user_email_id means email id of general employee     
+>>user_email_id means email id of general employee
+>>
+>>Please reach out to me if any doubts
+Regards
+BINAY KUMAR SWAIN 
+Mob No : +918455933974
+>>EMAIL ID : binaykumarswain1997@gmail.com
+
