@@ -6,7 +6,7 @@ Hello Team
 >> Tool-AWS
 >> 
 >> Resource Used-Node.js(18x),DynamoDB,Lambda,Cognito,Apigateway,SES
->> Layer(package) - uuid(9.0.1)
+>> Layer(package) - uuid(9.0.1),amazon-cognito-identity-js(6.3.7)
 >>
 >>
 >>Brief Introduction About the Project Implementation(please use POST method for every endpoint)
