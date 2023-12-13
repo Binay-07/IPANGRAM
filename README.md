@@ -28,8 +28,8 @@ NOW you added a new passowrd.
 >>
 >>https://mentoos.s3.ap-southeast-1.amazonaws.com/IPANGRAM+POSTMAN+COLLECTIONS.docx
 >>
->>Please reach out to me if any doubts
-Regards
+>>
+Thanks and Regards
 BINAY KUMAR SWAIN 
 Mob No : +918455933974
 >>EMAIL ID : binaykumarswain1997@gmail.com
